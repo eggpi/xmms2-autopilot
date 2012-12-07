@@ -38,7 +38,7 @@ def positive(u, v):
     if _graph.has_edge(u, v):
         _graph[u][v]["weight"] += 1.0
     else:
-        if _graph.out_degree(u) == MAX_DEGREE:
+        if u in _graph and _graph.out_degree(u) == MAX_DEGREE:
             _graph.remove_edge(u, _get_min_weight_neighbor(u))
         _graph.add_edge(u, v, weight = 1.0)
 
@@ -71,6 +71,14 @@ def _compute_candidates(u, k):
 
         candidates[child] = _graph[parent][child]["weight"]
 
+    if len(_graph) > len(candidates):
+        # pick one extra random node
+        random_node = random.choice(_graph.nodes())
+        while random_node in candidates:
+            random_node = random.choice(_graph.nodes())
+
+        candidates[random_node] = 1.0
+
     return candidates
 
 @_ensure_graph
@@ -80,7 +88,7 @@ def next(u, k = 3):
     """
 
     candidates = _compute_candidates(u, k)
-    sum_weights = sum(candidates.values())
+    sum_weights = float(sum(candidates.values()))
 
     probabilities = {}
     for c in candidates:
