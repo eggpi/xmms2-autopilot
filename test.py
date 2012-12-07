@@ -46,7 +46,7 @@ class TestRecommend(unittest.TestCase):
     @fresh_random
     def test_next(self):
         self.assertEquals(recommend.next(1, 2), 3)
-        self.assertEquals(recommend.next(20), None)
+        self.assertEquals(recommend.next(20), 11)
 
 if __name__ == "__main__":
     unittest.main()

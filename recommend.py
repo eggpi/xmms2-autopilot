@@ -109,9 +109,12 @@ def next(u, k = 3):
     """
 
     if u not in _graph:
-        return None
+        _graph.add_node(u)
 
     candidates = _compute_candidates(u, k)
+    if not candidates:
+        return None
+
     sum_weights = float(sum(candidates.values()))
 
     probabilities = {}
