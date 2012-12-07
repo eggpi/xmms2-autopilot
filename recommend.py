@@ -90,7 +90,7 @@ def _compute_candidates(u, k):
         if distances[child] > k:
             break
 
-        candidates[child] = _graph[parent][child]["weight"]
+        candidates[child] = _graph[parent][child]["weight"] / distances[child]
 
     if len(_graph) > len(candidates) + 1:
         # pick one extra random node
