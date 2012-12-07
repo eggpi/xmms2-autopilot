@@ -15,6 +15,15 @@ def _ensure_graph(f):
 
     return decorated_f
 
+def _dump_graph(f):
+    @_ensure_graph
+    def decorated_f(*args, **kwds):
+        ret = f(*args, **kwds)
+        networkx.write_dot(_graph, "autopilot.dot")
+        return ret
+
+    return decorated_f
+
 def _get_min_weight_neighbor(u):
     """
     Get the neighbor that is connected to a vertex with a least-cost
@@ -29,7 +38,7 @@ def _get_min_weight_neighbor(u):
 
     return min_neighbor[0]
 
-@_ensure_graph
+@_dump_graph
 def positive(u, v):
     """
     Give a positive feedback from node u to node v.
@@ -42,7 +51,7 @@ def positive(u, v):
             _graph.remove_edge(u, _get_min_weight_neighbor(u))
         _graph.add_edge(u, v, weight = 1.0)
 
-@_ensure_graph
+@_dump_graph
 def negative(u, v):
     """
     Give a negative feedback from node u to node v.
@@ -51,7 +60,7 @@ def negative(u, v):
     if _graph.has_edge(u, v):
         _graph.remove_edge(u, v)
 
-@_ensure_graph
+@_dump_graph
 def _compute_candidates(u, k):
     """
     Compute the candidate nodes starting at u.
@@ -81,7 +90,7 @@ def _compute_candidates(u, k):
 
     return candidates
 
-@_ensure_graph
+@_dump_graph
 def next(u, k = 3):
     """
     Pick a next node, starting at node u.
