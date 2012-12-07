@@ -98,7 +98,10 @@ def _compute_candidates(u, k):
         while random_node in candidates or random_node == u:
             random_node = random.choice(_graph.nodes())
 
-        candidates[random_node] = 1.0
+        if candidates:
+            candidates[random_node] = min(candidates.values())
+        else:
+            candidates[random_node] = 1.0
 
     return candidates
 
