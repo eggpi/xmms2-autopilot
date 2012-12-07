@@ -80,10 +80,10 @@ def _compute_candidates(u, k):
 
         candidates[child] = _graph[parent][child]["weight"]
 
-    if len(_graph) > len(candidates):
+    if len(_graph) > len(candidates) + 1:
         # pick one extra random node
         random_node = random.choice(_graph.nodes())
-        while random_node in candidates:
+        while random_node in candidates or random_node == u:
             random_node = random.choice(_graph.nodes())
 
         candidates[random_node] = 1.0
