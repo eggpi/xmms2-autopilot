@@ -1,12 +1,17 @@
-import unittest
 import recommend
+
+import random
+import unittest
+
+def fresh_random(mth):
+    def decorated_mth(*args, **kwds):
+        random.seed("random seed")
+        return mth(*args, **kwds)
+    return decorated_mth
 
 class TestRecommend(unittest.TestCase):
     def setUp(self):
         import networkx
-        import random
-
-        random.seed("random seed")
 
         g = networkx.DiGraph()
 
@@ -25,6 +30,7 @@ class TestRecommend(unittest.TestCase):
 
         recommend._graph = g
 
+    @fresh_random
     def test_compute_candidates(self):
         io = [
             ((1, 1), {2: 2.0, 3: 3.0, 4: 1.0}),
@@ -37,6 +43,7 @@ class TestRecommend(unittest.TestCase):
         for input, output in io:
             self.assertEquals(output, recommend._compute_candidates(*input))
 
+    @fresh_random
     def test_next(self):
         self.assertEquals(recommend.next(1, 2), 3)
         self.assertEquals(recommend.next(20), None)
