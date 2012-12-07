@@ -7,11 +7,20 @@ _graph = None
 MAX_OUT_DEGREE = 10
 MAX_IN_DEGREE = 5
 
+GRAPH_DOT_FILE = "autopilot_graph.dot"
+GRAPH_PERSISTENCE_FILE = "autopilot_graph.pickle"
+
 def _ensure_graph(f):
     def decorated_f(*args, **kwds):
         global _graph
         if _graph is None:
-            _graph = networkx.DiGraph()
+            try:
+                _graph = networkx.read_gpickle(GRAPH_PERSISTENCE_FILE)
+                logging.info("successfully loaded graph from %s",
+                             GRAPH_PERSISTENCE_FILE)
+            except:
+                _graph = networkx.DiGraph()
+                logging.info("starting with an empty graph")
 
         return f(*args, **kwds)
 
@@ -21,7 +30,8 @@ def _dump_graph(f):
     @_ensure_graph
     def decorated_f(*args, **kwds):
         ret = f(*args, **kwds)
-        networkx.write_dot(_graph, "autopilot.dot")
+        networkx.write_dot(_graph, GRAPH_DOT_FILE)
+        networkx.write_gpickle(_graph, GRAPH_PERSISTENCE_FILE)
         return ret
 
     return decorated_f
