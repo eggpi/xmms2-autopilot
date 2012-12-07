@@ -3,6 +3,8 @@ import random
 
 _graph = None
 
+MAX_DEGREE = 10
+
 def _ensure_graph(f):
     def decorated_f(*args, **kwds):
         global _graph
@@ -13,6 +15,20 @@ def _ensure_graph(f):
 
     return decorated_f
 
+def _get_min_weight_neighbor(u):
+    """
+    Get the neighbor that is connected to a vertex with a least-cost
+    edge.
+    """
+
+    min_neighbor = None
+    for un in _graph.neighbors(u):
+        weight = graph[u][un]["weight"]
+        if min_neighbor is None or weight < min_neighbor[1]:
+            min_neighbor = (un, weight)
+
+    return min_neighbor[0]
+
 @_ensure_graph
 def positive(u, v):
     """
@@ -22,6 +38,8 @@ def positive(u, v):
     if _graph.has_edge(u, v):
         _graph[u][v]["weight"] += 1.0
     else:
+        if _graph.out_degree(u) == MAX_DEGREE:
+            _graph.remove_edge(u, _get_min_weight_neighbor(u))
         _graph.add_edge(u, v, weight = 1.0)
 
 @_ensure_graph
