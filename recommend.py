@@ -84,9 +84,9 @@ def _compute_candidates(u, k):
     """
 
     candidates = {}
-    distances = {u: 0}
+    distances = {u: 0.0}
     for parent, child in networkx.bfs_edges(_graph, u):
-        distances[child] = distances[parent] + 1
+        distances[child] = distances[parent] + 1.0
         if distances[child] > k:
             break
 
