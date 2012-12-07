@@ -119,7 +119,7 @@ def next(u, k = 3):
 
     probabilities = {}
     for c in candidates:
-        probabilities[c] = candidates[c] / float(sum_weights)
+        probabilities[c] = candidates[c] / sum_weights
 
     candidates = candidates.keys()
 
