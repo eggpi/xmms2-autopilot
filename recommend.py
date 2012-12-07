@@ -96,6 +96,9 @@ def next(u, k = 3):
     Pick a next node, starting at node u.
     """
 
+    if u not in _graph:
+        return None
+
     candidates = _compute_candidates(u, k)
     sum_weights = float(sum(candidates.values()))
 

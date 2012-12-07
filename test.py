@@ -39,6 +39,7 @@ class TestRecommend(unittest.TestCase):
 
     def test_next(self):
         self.assertEquals(recommend.next(1, 2), 3)
+        self.assertEquals(recommend.next(20), None)
 
 if __name__ == "__main__":
     unittest.main()
