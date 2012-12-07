@@ -67,7 +67,10 @@ def negative(u, v):
     """
 
     if _graph.has_edge(u, v):
-        _graph.remove_edge(u, v)
+        _graph[u][v]["weight"] -= 1.0
+
+        if graph[u][v]["weight"] == 0:
+            graph.remove_edge(u, v)
 
 @_dump_graph
 def _compute_candidates(u, k):
