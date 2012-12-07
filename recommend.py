@@ -1,5 +1,6 @@
 import networkx
 import random
+import logging
 
 _graph = None
 
@@ -60,6 +61,8 @@ def positive(u, v):
 
         _graph.add_edge(u, v, weight = 1.0)
 
+    logging.debug("%s -(%s)> %s", u, _graph[u][v]["weight"], v)
+
 @_dump_graph
 def negative(u, v):
     """
@@ -71,6 +74,11 @@ def negative(u, v):
 
         if graph[u][v]["weight"] == 0:
             graph.remove_edge(u, v)
+
+    if _graph.has_edge(u, v):
+        logging.debug("%s -(%s)> %s", u, _graph[u][v]["weight"], v)
+    else:
+        logging.debug("deleted edge %s -> %s", u, v)
 
 @_dump_graph
 def _compute_candidates(u, k):
