@@ -4,6 +4,9 @@ import recommend
 class TestRecommend(unittest.TestCase):
     def setUp(self):
         import networkx
+        import random
+
+        random.seed("random seed")
 
         g = networkx.DiGraph()
 
@@ -24,19 +27,18 @@ class TestRecommend(unittest.TestCase):
 
     def test_compute_candidates(self):
         io = [
-            ((1, 1), {2: 2, 3: 3}),
-            ((1, 2), {2: 2, 3: 3, 4: 1, 5: 1, 6: 2, 7: 1}),
-            ((1, 3), {2: 2, 3: 3, 4: 1, 5: 1, 6: 2, 7: 1, 8: 1, 9: 1, 10: 1}),
-            ((6, 1), {2: 1}),
-            ((6, 2), {1: 1, 2: 1, 7: 1})
+            ((1, 1), {2: 2, 3: 3, 4: 1.0}),
+            ((1, 2), {2: 2, 3: 3, 4: 1, 5: 1, 6: 2, 7: 1, 8: 1.0}),
+            ((1, 3), {1: 1.0, 2: 2, 3: 3, 4: 1, 5: 1, 6: 2, 7: 1, 8: 1, 9: 1, 10: 1}),
+            ((6, 1), {2: 1, 11: 1.0}),
+            ((6, 2), {1: 1, 2: 1, 7: 1, 8: 1.0})
         ]
 
         for input, output in io:
-            self.assertEquals(recommend._compute_candidates(*input), output)
+            self.assertEquals(output, recommend._compute_candidates(*input))
 
     def test_next(self):
-        n = recommend.next(1, 1)
-        self.assertIn(n, (2, 3))
+        self.assertEquals(recommend.next(1, 2), 3)
 
 if __name__ == "__main__":
     unittest.main()
