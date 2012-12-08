@@ -5,6 +5,8 @@ import functools
 
 _graph = None
 
+MIN_CANDIDATES = 3
+MIN_GRAPH_SIZE = 20
 MAX_OUT_DEGREE = 10
 MAX_IN_DEGREE = 5
 
@@ -127,7 +129,7 @@ def _compute_candidates(u, k):
     return candidates
 
 @_dump_graph
-def next(u, k = 3):
+def next(u, k = 3, default = None):
     """
     Pick a next node, starting at node u.
     """
@@ -135,9 +137,14 @@ def next(u, k = 3):
     if u not in _graph:
         _graph.add_node(u)
 
+    if len(_graph) < MIN_GRAPH_SIZE:
+        logging.debug("small graph, returning the default")
+        return default
+
     candidates = _compute_candidates(u, k)
-    if not candidates:
-        return None
+    if len(candidates) < MIN_CANDIDATES:
+        logging.debug("not enough candidates, returning the default")
+        return default
 
     sum_weights = float(sum(candidates.values()))
 
