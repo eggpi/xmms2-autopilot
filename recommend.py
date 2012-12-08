@@ -149,7 +149,6 @@ def next(u, k = 3):
     r = random.random()
     for i, p in enumerate(intervals):
         if r < p:
-            positive(u, candidates[i])
             return candidates[i]
 
     assert False
