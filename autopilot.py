@@ -68,6 +68,11 @@ class Autopilot(object):
     def on_playback_current_id(self, id_val):
         id = id_val.get_int()
         pos = self.xsync.playlist_current_pos()["position"]
+
+        if pos == self.pos_cache:
+            # we only care about song transitions
+            return
+
         current_time = time.time()
 
         if (None not in (self.pos_cache, self.last_song_start_time) and
