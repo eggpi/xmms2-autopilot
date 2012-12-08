@@ -84,11 +84,10 @@ def negative(u, v):
 
         if graph[u][v]["weight"] == 0:
             graph.remove_edge(u, v)
+            logging.debug("deleted edge %s -> %s", u, v)
 
     if _graph.has_edge(u, v):
         logging.debug("%s -(%s)> %s", u, _graph[u][v]["weight"], v)
-    else:
-        logging.debug("deleted edge %s -> %s", u, v)
 
 @_dump_graph
 def _compute_candidates(u, k):
