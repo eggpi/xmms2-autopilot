@@ -1,8 +1,11 @@
 import recommend
 
+import time
 import logging
 
 import xmmsclient
+
+FAST_SONG_CHANGE_THRESH = 5 # seconds
 
 class Autopilot(object):
     def __init__(self):
@@ -16,6 +19,8 @@ class Autopilot(object):
         self.xasync.broadcast_playlist_changed(cb = self.on_playlist_changed)
         self.xasync.broadcast_playback_current_id(cb = self.on_playback_current_id)
 
+        self.pos_cache = None
+        self.last_song_start_time = None
         self.playlist_entries_cache = self.xsync.playlist_list_entries()
 
         logging.info("autopilot setup, starting mainloop")
@@ -63,14 +68,18 @@ class Autopilot(object):
     def on_playback_current_id(self, id_val):
         id = id_val.get_int()
         pos = self.xsync.playlist_current_pos()["position"]
-        playback_time = self.xsync.playback_playtime()
+        current_time = time.time()
 
-        logging.debug("changed song, playback time is %s", playback_time)
-        if (playback_time < 2000 and
-            pos > 1 and len(self.playlist_entries_cache) > pos-1):
+        if (None not in (self.pos_cache, self.last_song_start_time) and
+           current_time - self.last_song_start_time < FAST_SONG_CHANGE_THRESH and
+           len(self.playlist_entries_cache) > pos > 1):
 
-            recommend.negative(self.playlist_entries_cache[pos-2],
-                               self.playlist_entries_cache[pos-1])
+            logging.debug("fast song change, giving negative feedback")
+            recommend.negative(self.playlist_entries_cache[self.pos_cache-2],
+                               self.playlist_entries_cache[self.pos_cache-1])
+
+        self.pos_cache = pos
+        self.last_song_start_time = current_time
 
         next = recommend.next(id)
         logging.info("requested next for %s, got %s", id, next)
