@@ -1,6 +1,7 @@
 import networkx
 import random
 import logging
+import functools
 
 _graph = None
 
@@ -11,6 +12,7 @@ GRAPH_DOT_FILE = "autopilot_graph.dot"
 GRAPH_PERSISTENCE_FILE = "autopilot_graph.pickle"
 
 def _ensure_graph(f):
+    @functools.wraps(f)
     def decorated_f(*args, **kwds):
         global _graph
         if _graph is None:
@@ -28,6 +30,7 @@ def _ensure_graph(f):
 
 def _dump_graph(f):
     @_ensure_graph
+    @functools.wraps(f)
     def decorated_f(*args, **kwds):
         ret = f(*args, **kwds)
         networkx.write_dot(_graph, GRAPH_DOT_FILE)
