@@ -145,12 +145,10 @@ def next(u, k = 3):
     candidates = candidates.keys()
 
     intervals = [probabilities[c] for c in candidates]
-    intervals = [sum(intervals[:i]) for i in range(len(intervals))]
-    intervals.append(1)
+    intervals = list(networkx.utils.cumulative_sum(intervals))
 
     r = random.random()
-
-    for i, p in enumerate(intervals[1:]):
+    for i, p in enumerate(intervals):
         if r < p:
             positive(u, candidates[i])
             return candidates[i]
