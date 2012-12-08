@@ -40,19 +40,22 @@ class Autopilot(object):
 
         if type == xmmsclient.PLAYLIST_CHANGED_INSERT:
             logging.debug("insert dict: %s", changed_dict)
-            recommend.positive(current_entries[pos-1],
-                               current_entries[pos])
+            if pos > 0 and len(current_entries) > pos:
+                recommend.positive(current_entries[pos-1],
+                                   current_entries[pos])
 
         elif type == xmmsclient.PLAYLIST_CHANGED_REMOVE:
             logging.debug("removal dict: %s", changed_dict)
-            recommend.negative(self.playlist_entries_cache[pos-1],
-                               self.playlist_entries_cache[pos])
+            if pos > 0 and len(self.playlist_entries_cache) > pos:
+                recommend.negative(self.playlist_entries_cache[pos-1],
+                                   self.playlist_entries_cache[pos])
 
         else:
             logging.debug("move dict: %s", changed_dict)
             pos = changed_dict["newposition"]
-            recommend.positive(current_entries[pos-1],
-                               current_entries[pos])
+            if pos > 0 and len(current_entries) > pos:
+                recommend.positive(current_entries[pos-1],
+                                   current_entries[pos])
 
         self.playlist_entries_cache = current_entries
         return True
@@ -63,7 +66,9 @@ class Autopilot(object):
         playback_time = self.xsync.playback_playtime()
 
         logging.debug("changed song, playback time is %s", playback_time)
-        if playback_time < 2000:
+        if (playback_time < 2000 and
+            pos > 1 and len(self.playlist_entries_cache) > pos-1):
+
             recommend.negative(self.playlist_entries_cache[pos-2],
                                self.playlist_entries_cache[pos-1])
 
