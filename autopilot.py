@@ -49,7 +49,7 @@ class Autopilot(object):
                                self.playlist_entries_cache[pos])
 
         else:
-            logging.debug("move dict: %s", moved_dict)
+            logging.debug("move dict: %s", changed_dict)
             pos = changed_dict["newposition"]
             recommend.positive(current_entries[pos-1],
                                current_entries[pos])
