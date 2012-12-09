@@ -105,7 +105,7 @@ def negative(u, v):
         logging.debug("%s -> %s doesn't exist, doing nothing", u, v)
 
 @_dump_graph
-def _compute_candidates(u, k):
+def _compute_candidates(u, k, climb = True):
     """
     Compute the candidate nodes starting at u.
 
@@ -115,6 +115,7 @@ def _compute_candidates(u, k):
     Returns a dictionary mapping candidates to their weights
     """
 
+    # find candidates among successors
     candidates = {}
     distances = {u: 0.0}
     for parent, child in networkx.bfs_edges(_graph, u):
@@ -124,8 +125,24 @@ def _compute_candidates(u, k):
 
         candidates[child] = _graph[parent][child]["weight"] / distances[child]
 
+    if not candidates and climb:
+        logging.debug("no candidates from bfs for %s, try climbing", u)
+        # union with candidates from predecessor with greatest weight
+        try:
+            pred = _get_max_weight_neighbor(u, "in")
+        except ValueError:
+            pred = None
+
+        if pred is not None:
+            more_candidates = _compute_candidates(pred, k, climb = False)
+            logging.debug("climbing %s yields %s", pred, more_candidates)
+            more_candidates.pop(u, None) # don't use our node itself
+            more_candidates.update(candidates) # use weights from 'candidates'
+
+            candidates = more_candidates
+
+    # pick one extra random node
     if len(_graph) > len(candidates) + 1:
-        # pick one extra random node
         random_node = random.choice(_graph.nodes())
         while random_node in candidates or random_node == u:
             random_node = random.choice(_graph.nodes())
@@ -134,6 +151,9 @@ def _compute_candidates(u, k):
             candidates[random_node] = min(candidates.values())
         else:
             candidates[random_node] = 1.0
+
+        logging.debug("picked random candidate %s with weight %s",
+                      random_node, candidates[random_node])
 
     return candidates
 

@@ -50,17 +50,17 @@ class TestRecommend(unittest.TestCase):
 
     @fresh_random
     def test_compute_candidates(self):
-        io = [
-            # last item is the random choice
-            ((1, 1), {2: 2.0, 3: 3.0, 4: 2.0}),
-            ((1, 2), {2: 2.0, 3: 3.0, 4: 0.5, 5: 0.5, 6: 1.0, 7: 0.5, 8: 0.5}),
-            ((1, 3), {2: 2.0, 3: 3.0, 4: 0.5, 5: 0.5, 6: 1.0, 7: 0.5, 8: 1.0 / 3, 9: 1.0 / 3, 10: 1.0 / 3, 11: 1.0 / 3}),
-            ((6, 1), {2: 1.0, 8: 1.0}),
-            ((6, 2), {1: 0.5, 2: 1.0, 7: 0.5, 11: 0.5})
-        ]
+        # no climbing, last item is the random choice
+        self.assertEquals(recommend._compute_candidates(1, 1), {2: 2.0, 3: 3.0, 4: 2.0})
+        self.assertEquals(recommend._compute_candidates(1, 2), {2: 2.0, 3: 3.0, 4: 0.5, 5: 0.5, 6: 1.0, 7: 0.5, 8: 0.5})
+        self.assertEquals(recommend._compute_candidates(1, 3), {2: 2.0, 3: 3.0, 4: 0.5, 5: 0.5, 6: 1.0, 7: 0.5, 8: 1.0 / 3, 9: 1.0 / 3, 10: 1.0 / 3, 11: 1.0 / 3})
+        self.assertEquals(recommend._compute_candidates(6, 1), {2: 1.0, 8: 1.0})
+        self.assertEquals(recommend._compute_candidates(6, 2), {1: 0.5, 2: 1.0, 7: 0.5, 11: 0.5})
 
-        for input, output in io:
-            self.assertEquals(output, recommend._compute_candidates(*input))
+        # exercise climbing, last two items are the random choices for the
+        # parent and the node
+        self.assertEquals(recommend._compute_candidates(5, 1), {4: 1.0, 6: 2.0, 7: 1.0, 11: 1.0})
+        self.assertEquals(recommend._compute_candidates(11, 2), {3: 1.0, 7: 1.0})
 
     @fresh_random
     def test_next(self):
