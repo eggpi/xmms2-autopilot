@@ -31,6 +31,8 @@ class TestRecommend(unittest.TestCase):
         recommend._graph = g
         recommend.MIN_GRAPH_SIZE = 0
         recommend.MIN_CANDIDATES = 0
+        recommend.GRAPH_DOT_FILE = None
+        recommend.GRAPH_PERSISTENCE_FILE = None
 
     def test_get_min_weight_neighbor(self):
         self.assertEquals(recommend._get_min_weight_neighbor(2, "in"), 6)

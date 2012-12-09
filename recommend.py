@@ -35,8 +35,20 @@ def _dump_graph(f):
     @functools.wraps(f)
     def decorated_f(*args, **kwds):
         ret = f(*args, **kwds)
-        networkx.write_dot(_graph, GRAPH_DOT_FILE)
-        networkx.write_gpickle(_graph, GRAPH_PERSISTENCE_FILE)
+
+        if GRAPH_DOT_FILE is not None:
+            try:
+                networkx.write_dot(_graph, GRAPH_DOT_FILE)
+            except:
+                logging.warning("failed to save dot file '%s'",
+                                GRAPH_DOT_FILE)
+
+        if GRAPH_PERSISTENCE_FILE is not None:
+            try:
+                networkx.write_gpickle(_graph, GRAPH_PERSISTENCE_FILE)
+            except:
+                logging.warning("failed to save graph file '%s'",
+                                GRAPH_PERSISTENCE_FILE)
         return ret
 
     return decorated_f
