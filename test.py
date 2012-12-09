@@ -67,5 +67,13 @@ class TestRecommend(unittest.TestCase):
         self.assertEquals(recommend.next(1, 2), 3)
         self.assertEquals(recommend.next(20), 11)
 
+    @fresh_random
+    def test_min_candidates(self):
+        min_candidates, recommend.MIN_CANDIDATES = recommend.MIN_CANDIDATES, float("inf")
+        self.assertEquals(recommend.next(10, 3), None)
+        recommend.MIN_CANDIDATES = 0
+        self.assertEquals(recommend.next(10, 3), 3)
+        recommend.MIN_CANDIDATES = min_candidates
+
 if __name__ == "__main__":
     unittest.main()
