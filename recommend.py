@@ -41,24 +41,21 @@ def _dump_graph(f):
 
     return decorated_f
 
-def _get_min_weight_neighbor(u, in_or_out):
-    """
-    Get the in- or out-neighbor that is connected to a vertex with a least-cost
-    edge.
-    """
+_get_neighbor_edges = \
+    lambda u, in_or_out: \
+        ((v, d) for u, v, d in _graph.out_edges(u, True)) \
+        if in_or_out == "out" else \
+        ((v, d) for v, u, d in _graph.in_edges(u, True))
 
-    if in_or_out == "out":
-        neighbors = _graph.sucessors(u)
-    else:
-        neighbors = _graph.predecessors(u)
+_get_min_weight_neighbor = \
+    lambda u, in_or_out: \
+        min((d["weight"], v)
+            for v, d in _get_neighbor_edges(u, in_or_out))[1]
 
-    min_neighbor = None
-    for un in neighbors:
-        weight = graph[u][un]["weight"]
-        if min_neighbor is None or weight < min_neighbor[1]:
-            min_neighbor = (un, weight)
-
-    return min_neighbor[0]
+_get_max_weight_neighbor = \
+    lambda u, in_or_out: \
+        max((d["weight"], v)
+            for v, d in _get_neighbor_edges(u, in_or_out))[1]
 
 @_dump_graph
 def positive(u, v):

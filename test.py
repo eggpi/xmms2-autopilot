@@ -32,6 +32,20 @@ class TestRecommend(unittest.TestCase):
         recommend.MIN_GRAPH_SIZE = 0
         recommend.MIN_CANDIDATES = 0
 
+    def test_get_min_weight_neighbor(self):
+        self.assertEquals(recommend._get_min_weight_neighbor(2, "in"), 6)
+        self.assertEquals(recommend._get_min_weight_neighbor(5, "in"), 3)
+        self.assertEquals(recommend._get_min_weight_neighbor(6, "out"), 2)
+        self.assertEquals(recommend._get_min_weight_neighbor(3, "out"), 4)
+        self.assertRaises(ValueError, recommend._get_min_weight_neighbor, 9, "out")
+
+    def test_get_max_weight_neighbor(self):
+        self.assertEquals(recommend._get_max_weight_neighbor(1, "in"), 2)
+        self.assertEquals(recommend._get_max_weight_neighbor(3, "in"), 1)
+        self.assertEquals(recommend._get_max_weight_neighbor(6, "out"), 2)
+        self.assertEquals(recommend._get_max_weight_neighbor(1, "out"), 3)
+        self.assertRaises(ValueError, recommend._get_max_weight_neighbor, 9, "out")
+
     @fresh_random
     def test_compute_candidates(self):
         io = [
