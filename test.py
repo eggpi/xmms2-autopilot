@@ -29,6 +29,8 @@ class TestRecommend(unittest.TestCase):
         g.add_edge(10, 11, weight = 1)
 
         recommend._graph = g
+        recommend.MIN_GRAPH_SIZE = 0
+        recommend.MIN_CANDIDATES = 0
 
     @fresh_random
     def test_compute_candidates(self):
