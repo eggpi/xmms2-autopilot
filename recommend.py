@@ -6,6 +6,7 @@ import functools
 _graph = None
 
 MIN_CANDIDATES = 3
+MAX_CANDIDATE_DIST = 3
 MIN_GRAPH_SIZE = 20
 MAX_OUT_DEGREE = 10
 MAX_IN_DEGREE = 5
@@ -105,22 +106,27 @@ def negative(u, v):
         logging.debug("%s -> %s doesn't exist, doing nothing", u, v)
 
 @_dump_graph
-def _compute_candidates(u, k, climb = True):
+def _compute_candidates(u, max_dist = None, climb = True):
     """
     Compute the candidate nodes starting at u.
 
-    The candidate nodes are those at distance < k from u, in
-    number of edges.
+    The candidate nodes are those at distance < MAX_CANDIDATE_DIST
+    from u, in number of edges, plus (if a minimum of MIN_CANDIDATES
+    is not reached that way), the candidates from the node's predecessor,
+    plus a random node in the graph.
 
     Returns a dictionary mapping candidates to their weights
     """
+
+    if max_dist is None:
+        max_dist = MAX_CANDIDATE_DIST
 
     # find candidates among successors
     candidates = {}
     distances = {u: 0.0}
     for parent, child in networkx.bfs_edges(_graph, u):
         distances[child] = distances[parent] + 1.0
-        if distances[child] > k:
+        if distances[child] > max_dist:
             break
 
         candidates[child] = _graph[parent][child]["weight"] / distances[child]
@@ -134,7 +140,7 @@ def _compute_candidates(u, k, climb = True):
             pred = None
 
         if pred is not None:
-            more_candidates = _compute_candidates(pred, k, climb = False)
+            more_candidates = _compute_candidates(pred, max_dist, climb = False)
             logging.debug("climbing %s yields %s", pred, more_candidates)
             more_candidates.pop(u, None) # don't use our node itself
             more_candidates.update(candidates) # use weights from 'candidates'
@@ -178,10 +184,13 @@ def _weighted_random_pick(pool):
     assert False
 
 @_dump_graph
-def next(u, k = 3, default = None):
+def next(u, max_candidate_dist = None, default = None):
     """
     Pick a next node, starting at node u.
     """
+
+    if max_candidate_dist is None:
+        max_candidate_dist = MAX_CANDIDATE_DIST
 
     if u not in _graph:
         _graph.add_node(u)
@@ -190,7 +199,7 @@ def next(u, k = 3, default = None):
         logging.debug("small graph, returning the default")
         return default
 
-    candidates = _compute_candidates(u, k)
+    candidates = _compute_candidates(u, max_candidate_dist)
     if len(candidates) < MIN_CANDIDATES:
         logging.debug("not enough candidates, returning the default")
         return default

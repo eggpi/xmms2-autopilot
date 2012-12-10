@@ -6,12 +6,22 @@ import random
 
 import xmmsclient
 
-FAST_SONG_CHANGE_THRESH = 5 # seconds
-
 class Autopilot(object):
+    FAST_SONG_CHANGE_THRESH = 5 # seconds
+
     def __init__(self):
         self.xsync = xmmsclient.XMMSSync("autopilot-sync")
         self.xsync.connect()
+
+        self.xmms_config_keys = {} # xmms config key -> setter
+        self.register_attr_as_xmms_config(self, "FAST_SONG_CHANGE_THRESH")
+        self.register_attr_as_xmms_config(recommend, "MIN_GRAPH_SIZE")
+        self.register_attr_as_xmms_config(recommend, "MIN_CANDIDATES")
+        self.register_attr_as_xmms_config(recommend, "MAX_CANDIDATE_DIST")
+        self.register_attr_as_xmms_config(recommend, "MAX_OUT_DEGREE")
+        self.register_attr_as_xmms_config(recommend, "MAX_IN_DEGREE")
+
+        self.load_xmms_config(self.xsync.config_list_values())
 
         self.xasync = xmmsclient.XMMS("autopilot-async")
         self.xasync.connect()
@@ -19,6 +29,7 @@ class Autopilot(object):
         self.xasync.broadcast_playlist_loaded(cb = self.on_playlist_loaded)
         self.xasync.broadcast_playlist_changed(cb = self.on_playlist_changed)
         self.xasync.broadcast_playback_current_id(cb = self.on_playback_current_id)
+        self.xasync.broadcast_config_value_changed(cb = self.on_config_changed)
 
         self.pos_cache = None
         self.last_song_start_time = None
@@ -26,6 +37,25 @@ class Autopilot(object):
 
         logging.info("autopilot setup, starting mainloop")
         self.xasync.loop()
+
+    def register_attr_as_xmms_config(self, obj, attr):
+        default = getattr(obj, attr)
+        original_type = type(default) # need to convert back from str
+        key = "autopilot." + attr.lower()
+
+        xmms_config_key = self.xsync.config_register_value(key, str(default))
+        self.xmms_config_keys[xmms_config_key] = \
+                lambda v: setattr(obj, attr, original_type(v))
+
+    def load_xmms_config(self, xmms_config):
+        for key, setter in self.xmms_config_keys.items():
+            if key in xmms_config:
+                logging.info("loaded config '%s': %s", key, xmms_config[key])
+                setter(xmms_config[key])
+
+    def on_config_changed(self, config_val):
+        logging.info("config changed, reloading")
+        self.load_xmms_config(config_val.get_dict())
 
     def on_playlist_loaded(self, pls_val):
         pls_name = pls_val.get_string()
@@ -77,7 +107,7 @@ class Autopilot(object):
         current_time = time.time()
 
         if (None not in (self.pos_cache, self.last_song_start_time) and
-           current_time - self.last_song_start_time < FAST_SONG_CHANGE_THRESH and
+           current_time - self.last_song_start_time < self.FAST_SONG_CHANGE_THRESH and
            len(self.playlist_entries_cache) > pos > 1):
 
             logging.debug("fast song change, giving negative feedback")
