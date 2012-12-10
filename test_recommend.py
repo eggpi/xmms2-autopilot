@@ -3,6 +3,10 @@ import recommend
 import random
 import unittest
 
+"""
+Some non-extensive tests for requirements.py
+"""
+
 def fresh_random(mth):
     def decorated_mth(*args, **kwds):
         random.seed("random seed")
