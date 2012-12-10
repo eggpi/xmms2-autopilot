@@ -59,6 +59,7 @@ class TestRecommend(unittest.TestCase):
 
         # exercise climbing, last two items are the random choices for the
         # parent and the node
+        min_candidates, recommend.MIN_CANDIDATES = recommend.MIN_CANDIDATES, 3
         self.assertEquals(recommend._compute_candidates(5, 1), {4: 1.0, 6: 2.0, 7: 1.0, 11: 1.0})
         self.assertEquals(recommend._compute_candidates(11, 2), {3: 1.0, 7: 1.0})
 
@@ -72,7 +73,7 @@ class TestRecommend(unittest.TestCase):
         min_candidates, recommend.MIN_CANDIDATES = recommend.MIN_CANDIDATES, float("inf")
         self.assertEquals(recommend.next(10, 3), None)
         recommend.MIN_CANDIDATES = 0
-        self.assertEquals(recommend.next(10, 3), 3)
+        self.assertEquals(recommend.next(10, 3), 11)
         recommend.MIN_CANDIDATES = min_candidates
 
 if __name__ == "__main__":

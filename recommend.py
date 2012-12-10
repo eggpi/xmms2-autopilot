@@ -125,8 +125,8 @@ def _compute_candidates(u, k, climb = True):
 
         candidates[child] = _graph[parent][child]["weight"] / distances[child]
 
-    if not candidates and climb:
-        logging.debug("no candidates from bfs for %s, try climbing", u)
+    if len(candidates) < MIN_CANDIDATES-1 and climb:
+        logging.debug("not enough candidates for %s, try climbing", u)
         # union with candidates from predecessor with greatest weight
         try:
             pred = _get_max_weight_neighbor(u, "in")
