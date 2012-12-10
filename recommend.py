@@ -175,7 +175,7 @@ def next(u, k = 3, default = None):
         logging.debug("not enough candidates, returning the default")
         return default
 
-    sum_weights = float(sum(candidates.values()))
+    sum_weights = sum(candidates.values())
 
     probabilities = {}
     for c in candidates:
