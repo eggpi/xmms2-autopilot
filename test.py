@@ -62,6 +62,7 @@ class TestRecommend(unittest.TestCase):
         min_candidates, recommend.MIN_CANDIDATES = recommend.MIN_CANDIDATES, 3
         self.assertEquals(recommend._compute_candidates(5, 1), {4: 1.0, 6: 2.0, 7: 1.0, 11: 1.0})
         self.assertEquals(recommend._compute_candidates(11, 2), {3: 1.0, 7: 1.0})
+        recommend.MIN_CANDIDATES = min_candidates
 
     @fresh_random
     def test_next(self):
