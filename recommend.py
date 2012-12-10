@@ -10,8 +10,8 @@ MIN_GRAPH_SIZE = 20
 MAX_OUT_DEGREE = 10
 MAX_IN_DEGREE = 5
 
-GRAPH_DOT_FILE = "autopilot_graph.dot"
-GRAPH_PERSISTENCE_FILE = "autopilot_graph.pickle"
+GRAPH_DOT_FILE = None
+GRAPH_PERSISTENCE_FILE = None
 
 def _ensure_graph(f):
     @functools.wraps(f)

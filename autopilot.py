@@ -96,4 +96,8 @@ if __name__ == "__main__":
     logging.basicConfig(level = logging.DEBUG,
                         format = "%(levelname)s:%(funcName)s:%(lineno)s - "
                                  "%(message)s")
+
+    recommend.GRAPH_DOT_FILE = "autopilot_graph.dot"
+    recommend.GRAPH_PERSISTENCE_FILE = "autopilot_graph.pickle"
+
     autopilot = Autopilot()
