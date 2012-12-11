@@ -157,6 +157,26 @@ def _compute_candidates(u, k, climb = True):
 
     return candidates
 
+def _weighted_random_pick(pool):
+    """
+    Randomly pick an element from a pool of weighted candidates.
+
+    The pool parameter should be a dictionary mapping elements to weights.
+    """
+
+    sum_weights = sum(pool.values())
+
+    candidates = pool.keys()
+    probabilities = [pool[c] / sum_weights for c in candidates]
+    intervals = networkx.utils.cumulative_sum(probabilities)
+
+    r = random.random()
+    for c, i in zip(candidates, intervals):
+        if r < i:
+            return c
+
+    assert False
+
 @_dump_graph
 def next(u, k = 3, default = None):
     """
@@ -175,20 +195,4 @@ def next(u, k = 3, default = None):
         logging.debug("not enough candidates, returning the default")
         return default
 
-    sum_weights = sum(candidates.values())
-
-    probabilities = {}
-    for c in candidates:
-        probabilities[c] = candidates[c] / sum_weights
-
-    candidates = candidates.keys()
-
-    intervals = [probabilities[c] for c in candidates]
-    intervals = list(networkx.utils.cumulative_sum(intervals))
-
-    r = random.random()
-    for i, p in enumerate(intervals):
-        if r < p:
-            return candidates[i]
-
-    assert False
+    return _weighted_random_pick(candidates)
