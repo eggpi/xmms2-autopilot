@@ -2,6 +2,7 @@ import recommend
 
 import time
 import logging
+import random
 
 import xmmsclient
 
@@ -86,11 +87,14 @@ class Autopilot(object):
         self.pos_cache = pos
         self.last_song_start_time = current_time
 
-        next = recommend.next(id)
+        next = recommend.next(id, default = self.choose_random_media())
         logging.info("requested next for %s, got %s", id, next)
 
-        if next is not None:
-            self.xsync.playlist_insert_id(pos+1, next)
+        self.xsync.playlist_insert_id(pos+1, next)
+
+    def choose_random_media(self):
+        all_media_coll = xmmsclient.coll_parse("in:'All Media'")
+        return random.choice(self.xsync.coll_query_ids(all_media_coll))
 
 if __name__ == "__main__":
     logging.basicConfig(level = logging.DEBUG,
