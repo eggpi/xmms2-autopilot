@@ -7,7 +7,7 @@ import random
 import xmmsclient
 
 class Autopilot(object):
-    FAST_SONG_CHANGE_THRESH = 5 # seconds
+    FAST_SONG_CHANGE_THRESH = 20 # seconds
 
     def __init__(self):
         self.xsync = xmmsclient.XMMSSync("autopilot-sync")
