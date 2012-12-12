@@ -195,4 +195,5 @@ def next(u, k = 3, default = None):
         logging.debug("not enough candidates, returning the default")
         return default
 
+    logging.debug("candidates for %s: %s", u, candidates)
     return _weighted_random_pick(candidates)
