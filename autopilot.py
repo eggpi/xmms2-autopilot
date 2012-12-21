@@ -111,8 +111,8 @@ class Autopilot(object):
            len(self.playlist_entries_cache) > pos > 1):
 
             logging.debug("fast song change, giving negative feedback")
-            recommend.negative(self.playlist_entries_cache[self.pos_cache-2],
-                               self.playlist_entries_cache[self.pos_cache-1])
+            recommend.negative(self.playlist_entries_cache[self.pos_cache-1],
+                               self.playlist_entries_cache[self.pos_cache])
 
         self.pos_cache = pos
         self.last_song_start_time = current_time
