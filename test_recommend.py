@@ -82,6 +82,12 @@ class TestRecommend(unittest.TestCase):
         recommend.MIN_CANDIDATES = 0
         self.assertEquals(recommend.next(10, 3), 11)
 
+    def test_return_default(self):
+        recommend.MIN_CANDIDATES = float("inf")
+
+        default = object()
+        self.assertIs(recommend.next(10, 3, default), default)
+
 if __name__ == "__main__":
     recommend.GRAPH_DOT_FILE = None
     recommend.GRAPH_PERSISTENCE_FILE = None
