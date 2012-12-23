@@ -88,6 +88,22 @@ class TestRecommend(unittest.TestCase):
         default = object()
         self.assertIs(recommend.next(10, 3, default), default)
 
+    def test_max_out_degree(self):
+        recommend.MAX_OUT_DEGREE = 1
+
+        recommend.positive(1, 4)
+        self.assertTrue(recommend._graph.has_edge(1, 4))
+        self.assertFalse(recommend._graph.has_edge(1, 3))
+        self.assertFalse(recommend._graph.has_edge(1, 2))
+
+    def test_max_in_degree(self):
+        recommend.MAX_IN_DEGREE = 1
+
+        recommend.positive(5, 2)
+        self.assertTrue(recommend._graph.has_edge(5, 2))
+        self.assertFalse(recommend._graph.has_edge(1, 2))
+        self.assertFalse(recommend._graph.has_edge(6, 2))
+
 if __name__ == "__main__":
     recommend.GRAPH_DOT_FILE = None
     recommend.GRAPH_PERSISTENCE_FILE = None

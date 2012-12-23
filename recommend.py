@@ -79,10 +79,14 @@ def positive(u, v):
     if _graph.has_edge(u, v):
         _graph[u][v]["weight"] += 1.0
     else:
-        if u in _graph and _graph.out_degree(u) == MAX_OUT_DEGREE:
-            _graph.remove_edge(u, _get_min_weight_neighbor(u), "out")
-        if v in _graph and _graph.in_degree(v) == MAX_IN_DEGREE:
-            _graph.remove_edge(u, _get_min_weight_neighbor(v), "in")
+        # lazily fix degrees for u and v
+        if u in _graph:
+            while _graph.out_degree(u) >= MAX_OUT_DEGREE:
+                _graph.remove_edge(u, _get_min_weight_neighbor(u, "out"))
+
+        if v in _graph:
+            while _graph.in_degree(v) >= MAX_IN_DEGREE:
+                _graph.remove_edge(_get_min_weight_neighbor(v, "in"), v)
 
         _graph.add_edge(u, v, weight = 1.0)
 
