@@ -11,6 +11,9 @@ MIN_GRAPH_SIZE = 20
 MAX_OUT_DEGREE = 10
 MAX_IN_DEGREE = 5
 
+FEEDBACK_WEIGHT_HIGH = 1.0
+FEEDBACK_WEIGHT_LOW = 0.5
+
 GRAPH_DOT_FILE = None
 GRAPH_PERSISTENCE_FILE = None
 
@@ -71,13 +74,13 @@ _get_max_weight_neighbor = \
             for v, d in _get_neighbor_edges(u, in_or_out))[1]
 
 @_dump_graph
-def positive(u, v):
+def positive(u, v, weight = FEEDBACK_WEIGHT_HIGH):
     """
     Give a positive feedback from node u to node v.
     """
 
     if _graph.has_edge(u, v):
-        _graph[u][v]["weight"] += 1.0
+        _graph[u][v]["weight"] += weight
     else:
         # lazily fix degrees for u and v
         if u in _graph:
@@ -88,20 +91,20 @@ def positive(u, v):
             while _graph.in_degree(v) >= MAX_IN_DEGREE:
                 _graph.remove_edge(_get_min_weight_neighbor(v, "in"), v)
 
-        _graph.add_edge(u, v, weight = 1.0)
+        _graph.add_edge(u, v, weight = weight)
 
     logging.debug("%s -(%s)> %s", u, _graph[u][v]["weight"], v)
 
 @_dump_graph
-def negative(u, v):
+def negative(u, v, weight = FEEDBACK_WEIGHT_HIGH):
     """
     Give a negative feedback from node u to node v.
     """
 
     if _graph.has_edge(u, v):
-        _graph[u][v]["weight"] -= 1.0
+        _graph[u][v]["weight"] -= weight
 
-        if _graph[u][v]["weight"] == 0:
+        if _graph[u][v]["weight"] <= 0:
             _graph.remove_edge(u, v)
             logging.debug("deleted edge %s -> %s", u, v)
         else:
