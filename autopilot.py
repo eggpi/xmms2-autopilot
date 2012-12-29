@@ -26,15 +26,12 @@ class Autopilot(object):
         self.xasync = xmmsclient.XMMS("autopilot-async")
         self.xasync.connect()
 
+        self.reset_playlist_cache()
         self.xasync.broadcast_playlist_loaded(cb = self.on_playlist_loaded)
         self.xasync.broadcast_playlist_changed(cb = self.on_playlist_changed)
+        self.xasync.broadcast_playlist_current_pos(cb = self.on_pos_changed)
         self.xasync.broadcast_playback_current_id(cb = self.on_playback_current_id)
         self.xasync.broadcast_config_value_changed(cb = self.on_config_changed)
-
-        self.pos_cache = None
-        self.last_song_start_time = None
-        self.playlist_entries_cache = self.xsync.playlist_list_entries()
-        self.insertions = []
 
         logging.info("autopilot setup, starting mainloop")
         self.xasync.loop()
@@ -59,9 +56,10 @@ class Autopilot(object):
         self.load_xmms_config(config_val.get_dict())
 
     def on_playlist_loaded(self, pls_val):
-        pls_name = pls_val.get_string()
-        logging.debug("loaded playlist '%s', updating cache", pls_name)
-        self.playlist_entries_cache = self.xsync.playlist_list_entries()
+        self.reset_playlist_cache()
+
+    def on_pos_changed(self, pos_val):
+        self.pos_cache = pos_val.get_dict()["position"]
 
     def on_playlist_changed(self, changed_val):
         changed_dict = changed_val.get_dict()
@@ -69,16 +67,24 @@ class Autopilot(object):
         type = changed_dict["type"]
         if type not in (xmmsclient.PLAYLIST_CHANGED_INSERT,
                         xmmsclient.PLAYLIST_CHANGED_MOVE,
-                        xmmsclient.PLAYLIST_CHANGED_REMOVE):
+                        xmmsclient.PLAYLIST_CHANGED_REMOVE,
+                        xmmsclient.PLAYLIST_CHANGED_CLEAR):
             return True
 
         pos = changed_dict["position"]
-        current_entries = self.xsync.playlist_list_entries()
+        if type == xmmsclient.PLAYLIST_CHANGED_REMOVE:
+            logging.debug("removal dict: %s", changed_dict)
+            if pos > 0:
+                recommend.negative(self.playlist_entries_cache[pos-1],
+                                   self.playlist_entries_cache[pos],
+                                   recommend.FEEDBACK_WEIGHT_HIGH)
+
+        self.playlist_entries_cache = self.xsync.playlist_list_entries()
 
         if type == xmmsclient.PLAYLIST_CHANGED_INSERT:
             logging.debug("insert dict: %s", changed_dict)
 
-            mid = current_entries[pos]
+            mid = self.playlist_entries_cache[pos]
             if self.check_own_insertion(pos, mid):
                 logging.debug("we inserted %s, low feedback", mid)
                 weight = recommend.FEEDBACK_WEIGHT_LOW
@@ -87,57 +93,51 @@ class Autopilot(object):
                 weight = recommend.FEEDBACK_WEIGHT_HIGH
 
             if pos > 0:
-                recommend.positive(current_entries[pos-1], mid, weight)
+                recommend.positive(self.playlist_entries_cache[pos-1], mid, weight)
 
-        elif type == xmmsclient.PLAYLIST_CHANGED_REMOVE:
-            logging.debug("removal dict: %s", changed_dict)
-            if pos > 0 and len(self.playlist_entries_cache) > pos:
-                recommend.negative(self.playlist_entries_cache[pos-1],
-                                   self.playlist_entries_cache[pos],
-                                   recommend.FEEDBACK_WEIGHT_HIGH)
-
-        else:
+        elif type == xmmsclient.PLAYLIST_CHANGED_MOVE:
             logging.debug("move dict: %s", changed_dict)
             pos = changed_dict["newposition"]
-            if pos > 0 and len(current_entries) > pos:
-                recommend.positive(current_entries[pos-1],
-                                   current_entries[pos])
+            if pos > 0:
+                recommend.positive(self.playlist_entries_cache[pos-1],
+                                   self.playlist_entries_cache[pos])
 
-        self.playlist_entries_cache = current_entries
+        elif type == xmmsclient.PLAYLIST_CHANGED_CLEAR:
+            self.reset_playlist_state()
+
+        self.fill_playlist()
         return True
 
     def on_playback_current_id(self, id_val):
-        pos = self.xsync.playlist_current_pos()["position"]
-
-        if pos == self.pos_cache:
-            # we only care about song transitions
-            return
-
         current_time = time.time()
         id_to_draw_next = id_val.get_int()
-        if (None not in (self.pos_cache, self.last_song_start_time) and
-           current_time - self.last_song_start_time < self.FAST_SONG_CHANGE_THRESH and
-           len(self.playlist_entries_cache) > pos > 1):
+        if (current_time - self.last_song_start_time < self.FAST_SONG_CHANGE_THRESH and
+            self.pos_cache >= 2):
 
             logging.debug("fast song change, giving negative feedback")
-            recommend.negative(self.playlist_entries_cache[self.pos_cache-1],
-                               self.playlist_entries_cache[self.pos_cache],
+            recommend.negative(self.playlist_entries_cache[self.pos_cache-2],
+                               self.playlist_entries_cache[self.pos_cache-1],
                                recommend.FEEDBACK_WEIGHT_LOW)
 
-            id_to_draw_next = self.playlist_entries_cache[self.pos_cache-1]
+            id_to_draw_next = self.playlist_entries_cache[self.pos_cache-2]
 
-        self.pos_cache = pos
         self.last_song_start_time = current_time
-
-        next = recommend.next(id_to_draw_next,
-                              default = self.choose_random_media())
-
-        logging.info("requested next for %s, got %s", id_to_draw_next, next)
-        self.do_insertion(pos+1, next)
+        self.fill_playlist(id_to_draw_next)
 
     def choose_random_media(self):
         all_media_coll = xmmsclient.coll_parse("in:'All Media'")
         return random.choice(self.xsync.coll_query_ids(all_media_coll))
+
+    def fill_playlist(self, id_to_draw_next = None):
+        if id_to_draw_next is None:
+            id_to_draw_next = self.playlist_entries_cache[self.pos_cache]
+
+        if self.pos_cache == len(self.playlist_entries_cache)-1:
+            next = recommend.next(id_to_draw_next,
+                                  default = self.choose_random_media())
+
+            logging.info("requested next for %s, got %s", id_to_draw_next, next)
+            self.do_insertion(self.pos_cache+1, next)
 
     def do_insertion(self, pos, mid):
         self.insertions.append((pos, mid))
@@ -150,6 +150,13 @@ class Autopilot(object):
             return False
 
         return True
+
+    def reset_playlist_cache(self):
+        self.insertions = []
+        self.last_song_start_time = 0
+
+        self.pos_cache = self.xsync.playlist_current_pos()["position"]
+        self.playlist_entries_cache = self.xsync.playlist_list_entries()
 
 if __name__ == "__main__":
     logging.basicConfig(level = logging.DEBUG,
