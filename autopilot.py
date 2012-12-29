@@ -34,6 +34,7 @@ class Autopilot(object):
         self.pos_cache = None
         self.last_song_start_time = None
         self.playlist_entries_cache = self.xsync.playlist_list_entries()
+        self.insertions = []
 
         logging.info("autopilot setup, starting mainloop")
         self.xasync.loop()
@@ -76,15 +77,24 @@ class Autopilot(object):
 
         if type == xmmsclient.PLAYLIST_CHANGED_INSERT:
             logging.debug("insert dict: %s", changed_dict)
-            if pos > 0 and len(current_entries) > pos:
-                recommend.positive(current_entries[pos-1],
-                                   current_entries[pos])
+
+            mid = current_entries[pos]
+            if self.check_own_insertion(pos, mid):
+                logging.debug("we inserted %s, low feedback", mid)
+                weight = recommend.FEEDBACK_WEIGHT_LOW
+            else:
+                logging.debug("user inserted %s, high feedback", mid)
+                weight = recommend.FEEDBACK_WEIGHT_HIGH
+
+            if pos > 0:
+                recommend.positive(current_entries[pos-1], mid, weight)
 
         elif type == xmmsclient.PLAYLIST_CHANGED_REMOVE:
             logging.debug("removal dict: %s", changed_dict)
             if pos > 0 and len(self.playlist_entries_cache) > pos:
                 recommend.negative(self.playlist_entries_cache[pos-1],
-                                   self.playlist_entries_cache[pos])
+                                   self.playlist_entries_cache[pos],
+                                   recommend.FEEDBACK_WEIGHT_HIGH)
 
         else:
             logging.debug("move dict: %s", changed_dict)
@@ -112,7 +122,8 @@ class Autopilot(object):
 
             logging.debug("fast song change, giving negative feedback")
             recommend.negative(self.playlist_entries_cache[self.pos_cache-1],
-                               self.playlist_entries_cache[self.pos_cache])
+                               self.playlist_entries_cache[self.pos_cache],
+                               recommend.FEEDBACK_WEIGHT_LOW)
 
         self.pos_cache = pos
         self.last_song_start_time = current_time
@@ -120,11 +131,24 @@ class Autopilot(object):
         next = recommend.next(id, default = self.choose_random_media())
         logging.info("requested next for %s, got %s", id, next)
 
-        self.xsync.playlist_insert_id(pos+1, next)
+        logging.info("requested next for %s, got %s", id_to_draw_next, next)
+        self.do_insertion(pos+1, next)
 
     def choose_random_media(self):
         all_media_coll = xmmsclient.coll_parse("in:'All Media'")
         return random.choice(self.xsync.coll_query_ids(all_media_coll))
+
+    def do_insertion(self, pos, mid):
+        self.insertions.append((pos, mid))
+        self.xsync.playlist_insert_id(pos, mid)
+
+    def check_own_insertion(self, pos, mid):
+        try:
+            self.insertions.remove((pos, mid))
+        except ValueError:
+            return False
+
+        return True
 
 if __name__ == "__main__":
     logging.basicConfig(level = logging.DEBUG,
