@@ -107,7 +107,6 @@ class Autopilot(object):
         return True
 
     def on_playback_current_id(self, id_val):
-        id = id_val.get_int()
         pos = self.xsync.playlist_current_pos()["position"]
 
         if pos == self.pos_cache:
@@ -115,7 +114,7 @@ class Autopilot(object):
             return
 
         current_time = time.time()
-
+        id_to_draw_next = id_val.get_int()
         if (None not in (self.pos_cache, self.last_song_start_time) and
            current_time - self.last_song_start_time < self.FAST_SONG_CHANGE_THRESH and
            len(self.playlist_entries_cache) > pos > 1):
@@ -125,11 +124,13 @@ class Autopilot(object):
                                self.playlist_entries_cache[self.pos_cache],
                                recommend.FEEDBACK_WEIGHT_LOW)
 
+            id_to_draw_next = self.playlist_entries_cache[self.pos_cache-1]
+
         self.pos_cache = pos
         self.last_song_start_time = current_time
 
-        next = recommend.next(id, default = self.choose_random_media())
-        logging.info("requested next for %s, got %s", id, next)
+        next = recommend.next(id_to_draw_next,
+                              default = self.choose_random_media())
 
         logging.info("requested next for %s, got %s", id_to_draw_next, next)
         self.do_insertion(pos+1, next)
