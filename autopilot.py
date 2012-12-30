@@ -25,6 +25,8 @@ class Autopilot(object):
         self.register_attr_as_xmms_config(recommend, "MAX_CANDIDATE_DIST")
         self.register_attr_as_xmms_config(recommend, "MAX_OUT_DEGREE")
         self.register_attr_as_xmms_config(recommend, "MAX_IN_DEGREE")
+        self.register_attr_as_xmms_config(recommend, "FEEDBACK_WEIGHT_HIGH")
+        self.register_attr_as_xmms_config(recommend, "FEEDBACK_WEIGHT_LOW")
 
         self.load_xmms_config(self.xsync.config_list_values())
 
