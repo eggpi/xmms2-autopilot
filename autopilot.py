@@ -1,11 +1,12 @@
 import recommend
 
-import time
+import xmmsclient
+
+import argparse
+import collections
 import logging
 import random
-import collections
-
-import xmmsclient
+import time
 
 # FIXME outdated bindings
 xmmsclient.PLAYLIST_CHANGED_REPLACE = 8
@@ -182,7 +183,15 @@ class Autopilot(object):
         self.playlist_entries_cache = self.xsync.playlist_list_entries()
 
 if __name__ == "__main__":
-    logging.basicConfig(level = logging.DEBUG,
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("--loglevel",
+                        type = str,
+                        choices = ("DEBUG", "INFO"),
+                        default = "INFO")
+
+    args = parser.parse_args()
+    logging.basicConfig(level = getattr(logging, args.loglevel),
                         format = "%(levelname)s:%(funcName)s:%(lineno)s - "
                                  "%(message)s")
 
