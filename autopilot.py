@@ -56,7 +56,6 @@ class Autopilot(object):
                 setter(xmms_config[key])
 
     def on_config_changed(self, config_val):
-        logging.info("config changed, reloading")
         self.load_xmms_config(config_val.get_dict())
 
     def on_playlist_loaded(self, pls_val):
@@ -96,6 +95,8 @@ class Autopilot(object):
             return True
 
         if type == xmmsclient.PLAYLIST_CHANGED_REPLACE:
+            logging.debug("playlist replaced, resetting")
+
             self.reset_playlist_cache()
             return True
 
@@ -159,7 +160,7 @@ class Autopilot(object):
             next = recommend.next(id_to_draw_next,
                                   default = self.choose_random_media())
 
-            logging.info("requested next for %s, got %s", id_to_draw_next, next)
+            logging.info("next(%s) -> %s", id_to_draw_next, next)
             self.do_insertion(curr_pos+1, next)
 
     def do_insertion(self, pos, mid):

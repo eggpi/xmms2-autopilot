@@ -93,7 +93,7 @@ def positive(u, v, weight = FEEDBACK_WEIGHT_HIGH):
 
         _graph.add_edge(u, v, weight = weight)
 
-    logging.debug("%s -(%s)> %s", u, _graph[u][v]["weight"], v)
+    logging.info("%s -(%s)> %s", u, _graph[u][v]["weight"], v)
 
 @_dump_graph
 def negative(u, v, weight = FEEDBACK_WEIGHT_HIGH):
@@ -106,9 +106,9 @@ def negative(u, v, weight = FEEDBACK_WEIGHT_HIGH):
 
         if _graph[u][v]["weight"] <= 0:
             _graph.remove_edge(u, v)
-            logging.debug("deleted edge %s -> %s", u, v)
+            logging.info("%s -/> %s", u, v)
         else:
-            logging.debug("%s -(%s)> %s", u, _graph[u][v]["weight"], v)
+            logging.info("%s -(%s)> %s", u, _graph[u][v]["weight"], v)
     else:
         logging.debug("%s -> %s doesn't exist, doing nothing", u, v)
 
