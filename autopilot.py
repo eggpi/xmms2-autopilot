@@ -67,7 +67,8 @@ class Autopilot(object):
 
     def on_current_id(self, id_val):
         current_time = time.time()
-        if (time.time() - self.last_song_start_time < self.FAST_SONG_CHANGE_THRESH and
+        playtime = time.time() - self.last_song_start_time
+        if (playtime < self.FAST_SONG_CHANGE_THRESH and
             len(self.last_mids) == 2):
 
             logging.debug("fast song change, giving negative feedback")
@@ -118,7 +119,9 @@ class Autopilot(object):
                 weight = recommend.FEEDBACK_WEIGHT_HIGH
 
             if pos > 0:
-                recommend.positive(self.playlist_entries_cache[pos-1], mid, weight)
+                recommend.positive(self.playlist_entries_cache[pos-1],
+                                   mid, weight)
+
             self.playlist_entries_cache.insert(pos, mid)
 
         elif type == xmmsclient.PLAYLIST_CHANGED_MOVE:
