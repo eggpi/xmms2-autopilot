@@ -104,7 +104,6 @@ class Autopilot(object):
             return True
 
         pos = changed_dict["position"]
-        mid = changed_dict["id"]
         if type == xmmsclient.PLAYLIST_CHANGED_REMOVE:
             logging.debug("removal dict: %s", changed_dict)
 
@@ -117,6 +116,7 @@ class Autopilot(object):
         elif type == xmmsclient.PLAYLIST_CHANGED_INSERT:
             logging.debug("insert dict: %s", changed_dict)
 
+            mid = changed_dict["id"]
             if self.check_own_insertion(pos, mid):
                 weight = recommend.FEEDBACK_WEIGHT_LOW
             else:
@@ -131,6 +131,7 @@ class Autopilot(object):
         elif type == xmmsclient.PLAYLIST_CHANGED_MOVE:
             logging.debug("move dict: %s", changed_dict)
 
+            mid = changed_dict["id"]
             newpos = changed_dict["newposition"]
             del self.playlist_entries_cache[pos]
             self.playlist_entries_cache.insert(newpos, mid)
