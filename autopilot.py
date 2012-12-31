@@ -1,6 +1,7 @@
 import recommend
 
 import xmmsclient
+import xmmsclient.collections
 
 import argparse
 import collections
@@ -12,14 +13,14 @@ import time
 xmmsclient.PLAYLIST_CHANGED_REPLACE = 8
 
 class Autopilot(object):
-    FAST_SONG_CHANGE_THRESH = 20 # seconds
+    FAST_SONG_CHANGE_FACTOR = 0.2
 
     def __init__(self):
         self.xsync = xmmsclient.XMMSSync("autopilot-sync")
         self.xsync.connect()
 
         self.xmms_config_keys = {} # xmms config key -> setter
-        self.register_attr_as_xmms_config(self, "FAST_SONG_CHANGE_THRESH")
+        self.register_attr_as_xmms_config(self, "FAST_SONG_CHANGE_FACTOR")
         self.register_attr_as_xmms_config(recommend, "MIN_GRAPH_SIZE")
         self.register_attr_as_xmms_config(recommend, "MIN_CANDIDATES")
         self.register_attr_as_xmms_config(recommend, "MAX_CANDIDATE_DIST")
@@ -68,17 +69,21 @@ class Autopilot(object):
         self.fill_playlist()
 
     def on_current_id(self, id_val):
-        current_time = time.time()
-        playtime = time.time() - self.last_song_start_time
-        if (playtime < self.FAST_SONG_CHANGE_THRESH and
-            len(self.last_mids) == 2):
+        if len(self.last_mids) == 2:
+            previous, skipped = self.last_mids
+            infos = self.query_infos_for_mid(skipped, ("duration", "laststarted"))
 
-            logging.debug("fast song change, giving negative feedback")
-            recommend.negative(self.last_mids[-2], self.last_mids[-1],
-                               recommend.FEEDBACK_WEIGHT_LOW)
+            playtime = time.time() - infos["laststarted"]
+            duration = infos["duration"] / 1000.0 # ms -> s
+
+            if playtime < duration*self.FAST_SONG_CHANGE_FACTOR:
+                logging.debug("fast song change, giving negative feedback")
+
+                recommend.negative(previous,
+                                   skipped,
+                                   recommend.FEEDBACK_WEIGHT_LOW)
 
         self.last_mids.append(id_val.get_int())
-        self.last_song_start_time = current_time
         self.fill_playlist(id_val.get_int())
 
         return True
@@ -181,6 +186,10 @@ class Autopilot(object):
         self.last_song_start_time = 0
         self.last_mids = collections.deque(maxlen = 2)
         self.playlist_entries_cache = self.xsync.playlist_list_entries()
+
+    def query_infos_for_mid(self, mid, fields):
+        coll = xmmsclient.collections.Equals(type = "id", value = str(mid))
+        return self.xsync.coll_query_infos(coll, fields)[0]
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
