@@ -77,13 +77,9 @@ class Autopilot(object):
             recommend.negative(self.last_mids[-2], self.last_mids[-1],
                                recommend.FEEDBACK_WEIGHT_LOW)
 
-            id_to_draw_next = self.last_mids[0]
-        else:
-            id_to_draw_next = id_val.get_int()
-
         self.last_mids.append(id_val.get_int())
         self.last_song_start_time = current_time
-        self.fill_playlist(id_to_draw_next)
+        self.fill_playlist(id_val.get_int())
 
         return True
 
