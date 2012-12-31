@@ -138,7 +138,8 @@ class Autopilot(object):
 
             if newpos > 0:
                 recommend.positive(self.playlist_entries_cache[newpos-1],
-                                   self.playlist_entries_cache[newpos])
+                                   self.playlist_entries_cache[newpos],
+                                   recommend.FEEDBACK_WEIGHT_HIGH)
 
         self.fill_playlist()
         return True
